@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import requests
 import time
 
 st.set_page_config(page_title='Nebulous CC Validator', page_icon='cc.png', layout="centered", initial_sidebar_state="auto", menu_items=None)
@@ -194,6 +195,57 @@ def page_contact():
 
 
 
+def bin():
+    API_ENDPOINT = "https://api.apilayer.com/bincheck/"
+    API_KEY = "5W24uhlSqks0B6E2OnGUl4q5OI6Fxnod"
+
+    def verify_bin(bin_number):
+        headers = {
+            "apikey": API_KEY
+        }
+        response = requests.get(API_ENDPOINT + bin_number, headers=headers)
+
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return None
+
+    def main():
+        st.markdown(
+            "<center><h1 style='font-family: Comic Sans MS; font-weight: 300; font-size: 32px;'>BIN Checker</h1></center>",
+            unsafe_allow_html=True)
+        st.markdown(
+            "<center><h1 style='font-family: Comic Sans MS; font-weight: 300; font-size: 18px;'>Enter a BIN (Bank "
+            "Identification Number) to verify it</h1></center>",
+            unsafe_allow_html=True)
+
+        bin_number = st.text_input("BIN Number")
+
+        if st.button("Verify"):
+            if bin_number:
+                with st.spinner("Please wait..."):
+                    time.sleep(2)
+                    bin_info = verify_bin(bin_number)
+                if bin_info:
+                    st.success("Verification Result")
+                    st.write(f"Bank: **{bin_info['bank_name']}**")
+                    st.write(f"BIN: **{bin_info['bin']}**")
+                    st.write(f"Country: **{bin_info['country']}**")
+                    st.write(f"Scheme: **{bin_info['scheme']}**")
+                    st.write(f"Type: **{bin_info['type']}**")
+                    if bin_info['url']:
+                        st.write(f"URL: **{bin_info['url']}**")
+                    else:
+                        st.write("URL: **Bank URL not found**")
+                else:
+                    st.warning("BIN verification failed.")
+            else:
+                st.warning("Please enter a BIN number.")
+
+    if __name__ == "__main__":
+        main()
+
 
 def main():
     st.sidebar.markdown(
@@ -203,7 +255,7 @@ def main():
     st.markdown(
         "<center><h1 style='font-family: Comic Sans MS; font-weight: 600; font-size: 32px;'>Nebulous Credit Card Validator</h1></center>",
         unsafe_allow_html=True)
-    pages = ["Gate-1", "Gate-2", "Gate-3"]
+    pages = ["Gate-1", "Gate-2", "Gate-3","Bin Checker"]
     selected_page = st.sidebar.radio("Please Select One", pages)
 
     if selected_page == "Gate-1":
@@ -212,6 +264,8 @@ def main():
         page_about()
     elif selected_page == "Gate-3":
         page_contact()
+    elif selected_page == "Bin Checker":
+        bin()
 
 if __name__ == '__main__':
     main()
